@@ -1,0 +1,40 @@
+# extract
+```{r}
+# empty data frame
+ests <- data.frame(
+  estimate = rep(NA, length(res_list)),
+  se = rep(NA, length(res_list)),
+  pval = rep(NA, length(res_list)),
+  ci.lb = rep(NA, length(res_list)),
+  ci.ub = rep(NA, length(res_list))
+)
+
+
+# extract
+# normal model
+for (i in seq_along(res_list)) {
+  model <- res_list[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests$estimate[i] <- coef(model)[2]  
+    ests$se[i] <- model$se[2]  
+    ests$pval[i] <- model$pval[2] 
+    ests$ci.lb[i] <- model$ci.lb[2]  
+    ests$ci.ub[i] <- model$ci.ub[2] 
+  }
+}
+
+# ls model
+for (i in seq_along(res_list3)) {
+  model <- res_list3[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests$estimate[i] <- coef(model)$alpha[2][1]  
+    ests$se[i] <- model$se.alpha[2] 
+    ests$pval[i] <- model$pval.alpha[2] 
+    ests$ci.lb[i] <- model$ci.lb.alpha[2]  
+    ests$ci.ub[i] <- model$ci.ub.alpha[2] 
+  }
+}
+```
+

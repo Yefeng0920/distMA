@@ -16,6 +16,7 @@ suppressMessages({
   library(purrr)
   library(metafor)
   library(clubSandwich)
+  library(furrr)
   }) 
 # function
 source(here("fun","fun.R"))
@@ -67,6 +68,9 @@ close(pb)
 
 saveRDS(res_list0, here("dat", "res_list0.RData"))
 res_list0 <- readRDS(here("dat", "res_list0.RData"))
+
+# look at the result
+res_list0[[1]]
 
 # errors or warnings
 #which(sapply(res_list0, is.null))

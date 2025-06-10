@@ -35,6 +35,10 @@ The scripts are formatted in Rmarkdown (`Rmd`).
 
 The `dat` folder includes the (**raw** and **processed**) datasets that are necessary for reproducing all analyses reported in our paper. The data are in the formats `.rda` and `.rds`.
 
+### `distMA_git.Rproj`
+
+`distMA_git.Rproj` is the `R Markdown` based project.
+
 
 **Credit:**
 

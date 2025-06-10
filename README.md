@@ -1,6 +1,6 @@
 # Replication package for
 
-* Distributional regression models for meta-analysis*
+*Distributional regression models for meta-analysis*
 
 ## Transparency declaration
 

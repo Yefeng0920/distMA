@@ -1,7 +1,7 @@
 ---
 title: "Distributional models for meta-analysis"
 output: html_document
-date: '2025-03-03'
+date: '2025-06-10'
 ---
 
 # Required packages
@@ -15,6 +15,7 @@ suppressMessages({
   library(tidyverse)
   library(purrr)
   library(metafor)
+  library(brms)
   library(clubSandwich)
   }) 
 # function
@@ -27,9 +28,9 @@ Load and process data.
 
 ```{r}
 # load data
-dat <- readRDS(here("dat", "dat_medicine.RDS"))
+dat_raw <- readRDS(here("dat", "dat_medicine.RDS"))
 # transform
-dat <- lapply(dat, function(df) {
+dat <- lapply(dat_raw, function(df) {
   df %>% mutate(
     logOR = z2logOR(z),
     logOR.se = se_z2se_logOR(se_z = z.se, z = z)
@@ -45,6 +46,7 @@ dat <- lapply(dat, function(df) {
 
 # saveRDS(dat, here("dat", "dat.RData"))
 dat <- readRDS(here("dat", "dat.RData"))
+
 ```
 
 # LS model
@@ -82,20 +84,197 @@ for (i in seq_along(dat)) {
 close(pb)
 
 
-saveRDS(res_list0, here("dat", "res_list0.RData"))
+#saveRDS(res_list0, here("dat", "res_list0.RData"))
 res_list0 <- readRDS(here("dat", "res_list0.RData"))
 
 # errors or warnings
 #which(sapply(res_list0, is.null))
 ```
 
+# First step
 
-
-# Small-study effects1
+## Small-study effects1
 
 ```{r}
 # empty lists
-res_list1 <- vector("list", length(dat))  
+res_list1_PET <- vector("list", length(dat))  
+error_list1 <- vector("list", length(dat))  
+warning_list1 <- vector("list", length(dat)) 
+
+# fit
+pb <- txtProgressBar(min = 0, max = length(dat), style = 3)
+for (i in seq_along(dat)) {
+  cat("\ndataset", i, "of", length(dat), "...\n") 
+  
+  tryCatch({
+    res <- rma(logOR, logOR.var, mods = ~ logOR.se, data = dat[[i]], 
+               control = list(maxiter = 1000, stepadj = 0.5))
+    
+    res_list1_PET[[i]] <- res
+  },
+  warning = function(w) {
+    message("\n Error in dataset ", i, ": ", w$message)
+    warning_list1[[i]] <- conditionMessage(w)  
+    res_list1_PET[[i]] <- NA  
+  },
+  error = function(e) {
+    message("\n Warning in dataset ", i, ": ", e$message)
+    error_list1[[i]] <- conditionMessage(e)  
+    res_list1_PET[[i]] <- NA 
+  })
+  
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+
+
+# saveRDS(res_list1_PET, here("dat", "res_list1_PET.RData"))
+res_list1_PET <- readRDS(here("dat", "res_list1_PET.RData"))
+
+# errors or warnings
+#which(sapply(res_list1_PET, is.null))
+```
+
+
+## Small-study effects2
+
+```{r}
+# empty lists
+res_list2_PET <- vector("list", length(dat))  
+error_list2 <- vector("list", length(dat))  
+warning_list2 <- vector("list", length(dat)) 
+
+# fit
+pb <- txtProgressBar(min = 0, max = length(dat), style = 3)
+for (i in seq_along(dat)) {
+  cat("\ndataset", i, "of", length(dat), "...\n") 
+  
+  tryCatch({
+    res <- rma(logOR, logOR.var, mods = ~ logOR.se, scale = ~ logOR.se, data = dat[[i]], 
+               control = list(maxiter = 1000, stepadj = 0.5, hessianCtrl=list(r=8)))
+    
+    res_list2_PET[[i]] <- res
+  },
+  warning = function(w) {
+    message("\n Error in dataset ", i, ": ", w$message)
+    warning_list2[[i]] <- conditionMessage(w)  
+    res_list2_PET[[i]] <- NA  
+  },
+  error = function(e) {
+    message("\n Warning in dataset ", i, ": ", e$message)
+    error_list2[[i]] <- conditionMessage(e)  
+    res_list2_PET[[i]] <- NA 
+  })
+  
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+
+
+# save
+# saveRDS(res_list2_PET, here("dat", "res_list2_PET.RData"))
+res_list2_PET <- readRDS(here("dat", "res_list2_PET.RData"))
+
+# errors or warnings
+#which(sapply(res_list2_PET, is.null))
+```
+
+## Small-study effects3
+
+```{r}
+# empty lists
+res_list3_PET <- vector("list", length(dat))  
+error_list3 <- vector("list", length(dat))  
+warning_list3 <- vector("list", length(dat)) 
+
+# fit
+pb <- txtProgressBar(min = 0, max = length(dat), style = 3)
+for (i in seq_along(dat)) {
+  cat("\ndataset", i, "of", length(dat), "...\n") 
+  
+  tryCatch({
+    res <- rma(logOR, logOR.var, scale = ~ logOR.se, data = dat[[i]], 
+               control = list(maxiter = 1000, stepadj = 0.5, hessianCtrl=list(r=8)))
+    
+    res_list3_PET[[i]] <- res
+  },
+  warning = function(w) {
+    message("\n Error in dataset ", i, ": ", w$message)
+    warning_list3[[i]] <- conditionMessage(w)  
+    res_list3_PET[[i]] <- NA  
+  },
+  error = function(e) {
+    message("\n Warning in dataset ", i, ": ", e$message)
+    error_list3[[i]] <- conditionMessage(e)  
+    res_list3_PET[[i]] <- NA 
+  })
+  
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+
+
+# save
+#saveRDS(res_list3_PET, here("dat", "res_list3_PET.RData"))
+res_list3_PET <- readRDS(here("dat", "res_list3_PET.RData"))
+
+# errors or warnings
+#which(sapply(res_list3_PET, is.null))
+```
+
+
+## Small-study effects4
+
+```{r}
+# empty lists
+res_list4_PET <- vector("list", length(dat))  
+error_list4 <- vector("list", length(dat))  
+warning_list4 <- vector("list", length(dat)) 
+
+# fit
+pb <- txtProgressBar(min = 0, max = length(dat), style = 3)
+for (i in seq_along(dat)) {
+  cat("\ndataset", i, "of", length(dat), "...\n") 
+  
+  tryCatch({
+    res <- rma(logOR, logOR.var, scale = ~ logOR.var, data = dat[[i]], 
+               control = list(maxiter = 1000, stepadj = 0.5, hessianCtrl=list(r=8)))
+    
+    res_list4_PET[[i]] <- res
+  },
+  warning = function(w) {
+    message("\n Error in dataset ", i, ": ", w$message)
+    warning_list4[[i]] <- conditionMessage(w)  
+    res_list4_PET[[i]] <- NA  
+  },
+  error = function(e) {
+    message("\n Warning in dataset ", i, ": ", e$message)
+    error_list4[[i]] <- conditionMessage(e)  
+    res_list4_PET[[i]] <- NA 
+  })
+  
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+
+
+# save
+#saveRDS(res_list4_PET, here("dat", "res_list4_PET.RData"))
+res_list4_PET <- readRDS(here("dat", "res_list4_PET.RData"))
+
+# errors or warnings
+#which(sapply(res_list4_PET, is.null))
+```
+
+
+
+# Second step
+
+## Small-study effects1
+
+```{r}
+# empty lists
+res_list1_PEESE <- vector("list", length(dat))  
 error_list1 <- vector("list", length(dat))  
 warning_list1 <- vector("list", length(dat)) 
 
@@ -108,17 +287,17 @@ for (i in seq_along(dat)) {
     res <- rma(logOR, logOR.var, mods = ~ logOR.var, data = dat[[i]], 
                control = list(maxiter = 1000, stepadj = 0.5))
     
-    res_list1[[i]] <- res
+    res_list1_PEESE[[i]] <- res
   },
   warning = function(w) {
     message("\n Error in dataset ", i, ": ", w$message)
     warning_list1[[i]] <- conditionMessage(w)  
-    res_list1[[i]] <- NA  
+    res_list1_PEESE[[i]] <- NA  
   },
   error = function(e) {
     message("\n Warning in dataset ", i, ": ", e$message)
     error_list1[[i]] <- conditionMessage(e)  
-    res_list1[[i]] <- NA 
+    res_list1_PEESE[[i]] <- NA 
   })
   
   setTxtProgressBar(pb, i)
@@ -126,19 +305,19 @@ for (i in seq_along(dat)) {
 close(pb)
 
 
-saveRDS(res_list1, here("dat", "res_list1.RData"))
-res_list1 <- readRDS(here("dat", "res_list1.RData"))
+#saveRDS(res_list1_PEESE, here("dat", "res_list1_PEESE.RData"))
+res_list1_PEESE <- readRDS(here("dat", "res_list1_PEESE.RData"))
 
 # errors or warnings
-#which(sapply(res_list1, is.null))
+#which(sapply(res_list1_PEESE, is.null))
 ```
 
 
-# Small-study effects2
+## Small-study effects2
 
 ```{r}
 # empty lists
-res_list2 <- vector("list", length(dat))  
+res_list2_PEESE <- vector("list", length(dat))  
 error_list2 <- vector("list", length(dat))  
 warning_list2 <- vector("list", length(dat)) 
 
@@ -151,17 +330,17 @@ for (i in seq_along(dat)) {
     res <- rma(logOR, logOR.var, mods = ~ logOR.var, scale = ~ logOR.var, data = dat[[i]], 
                control = list(maxiter = 1000, stepadj = 0.5, hessianCtrl=list(r=8)))
     
-    res_list2[[i]] <- res
+    res_list2_PEESE[[i]] <- res
   },
   warning = function(w) {
     message("\n Error in dataset ", i, ": ", w$message)
     warning_list2[[i]] <- conditionMessage(w)  
-    res_list2[[i]] <- NA  
+    res_list2_PEESE[[i]] <- NA  
   },
   error = function(e) {
     message("\n Warning in dataset ", i, ": ", e$message)
     error_list2[[i]] <- conditionMessage(e)  
-    res_list2[[i]] <- NA 
+    res_list2_PEESE[[i]] <- NA 
   })
   
   setTxtProgressBar(pb, i)
@@ -170,19 +349,19 @@ close(pb)
 
 
 # save
-saveRDS(res_list2, here("dat", "res_list2.RData"))
-res_list2 <- readRDS(here("dat", "res_list2.RData"))
+#saveRDS(res_list2_PEESE, here("dat", "res_list2_PEESE.RData"))
+res_list2_PEESE <- readRDS(here("dat", "res_list2_PEESE.RData"))
 
 # errors or warnings
-#which(sapply(res_list2, is.null))
+#which(sapply(res_list2_PEESE, is.null))
 ```
 
 
-# Small-study effects3
+## Small-study effects3
 
 ```{r}
 # empty lists
-res_list3 <- vector("list", length(dat))  
+res_list3_PEESE <- vector("list", length(dat))  
 error_list3 <- vector("list", length(dat))  
 warning_list3 <- vector("list", length(dat)) 
 
@@ -195,17 +374,17 @@ for (i in seq_along(dat)) {
     res <- rma(logOR, logOR.var, scale = ~ logOR, data = dat[[i]], 
                control = list(maxiter = 1000, stepadj = 0.5, hessianCtrl=list(r=8)))
     
-    res_list3[[i]] <- res
+    res_list3_PEESE[[i]] <- res
   },
   warning = function(w) {
     message("\n Error in dataset ", i, ": ", w$message)
     warning_list3[[i]] <- conditionMessage(w)  
-    res_list3[[i]] <- NA  
+    res_list3_PEESE[[i]] <- NA  
   },
   error = function(e) {
     message("\n Warning in dataset ", i, ": ", e$message)
     error_list3[[i]] <- conditionMessage(e)  
-    res_list3[[i]] <- NA 
+    res_list3_PEESE[[i]] <- NA 
   })
   
   setTxtProgressBar(pb, i)
@@ -214,9 +393,311 @@ close(pb)
 
 
 # save
-saveRDS(res_list3, here("dat", "res_list3.RData"))
-res_list3 <- readRDS(here("dat", "res_list3.RData"))
+#saveRDS(res_list3_PEESE, here("dat", "res_list3_PEESE.RData"))
+res_list3_PEESE <- readRDS(here("dat", "res_list3_PEESE.RData"))
 
 # errors or warnings
-#which(sapply(res_list3, is.null))
+#which(sapply(res_list3_PEESE, is.null))
 ```
+
+
+# Extraction
+
+## Example
+
+```{r}
+# empty data frame
+ests <- data.frame(
+  estimate = rep(NA, length(res_list0)),
+  se = rep(NA, length(res_list0)),
+  pval = rep(NA, length(res_list0)),
+  ci.lb = rep(NA, length(res_list0)),
+  ci.ub = rep(NA, length(res_list0))
+)
+
+
+# extract
+# normal model
+for (i in seq_along(res_list0)) {
+  model <- res_list[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests$estimate[i] <- coef(model)[2]  
+    ests$se[i] <- model$se[2]  
+    ests$pval[i] <- model$pval[2] 
+    ests$ci.lb[i] <- model$ci.lb[2]  
+    ests$ci.ub[i] <- model$ci.ub[2] 
+  }
+}
+
+# intercept-only ls model
+res <- rma(logOR, logOR.var, data = dat[[11]], 
+               control = list(maxiter = 1000, stepadj = 0.5))
+res.ls <- rma(logOR, logOR.var, scale = ~ 1, data = dat[[11]], 
+               control = list(maxiter = 1000, stepadj = 0.5))
+
+
+for (i in seq_along(res_list0)) {
+  model <- res_list0[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests$estimate[i] <- coef(model)$alpha[1]  
+    ests$se[i] <- model$se.alpha[1] 
+    ests$pval[i] <- model$pval.alpha[1] 
+    ests$ci.lb[i] <- model$ci.lb.alpha[1]  
+    ests$ci.ub[i] <- model$ci.ub.alpha[1] 
+  }
+}
+
+
+# regression ls model
+for (i in seq_along(res_list0)) {
+  model <- res_list0[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests$estimate[i] <- coef(model)$alpha[2][1]  
+    ests$se[i] <- model$se.alpha[2] 
+    ests$pval[i] <- model$pval.alpha[2] 
+    ests$ci.lb[i] <- model$ci.lb.alpha[2]  
+    ests$ci.ub[i] <- model$ci.ub.alpha[2] 
+  }
+}
+
+
+```
+
+
+## Publication bias
+
+```{r}
+# small study effect
+# empty data frame
+ests_pb1 <- data.frame(
+  k = rep(NA, length(res_list1_PET)),
+  estimate = rep(NA, length(res_list1_PET)),
+  se = rep(NA, length(res_list1_PET)),
+  pval = rep(NA, length(res_list1_PET)),
+  ci.lb = rep(NA, length(res_list1_PET)),
+  ci.ub = rep(NA, length(res_list1_PET))
+)
+
+# extract
+for (i in seq_along(res_list1_PET)) {
+  model <- res_list1_PET[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests_pb1$k[i] <- model$k
+    ests_pb1$estimate[i] <- coef(model)[2]  
+    ests_pb1$se[i] <- model$se[2]  
+    ests_pb1$pval[i] <- model$pval[2] 
+    ests_pb1$ci.lb[i] <- model$ci.lb[2]  
+    ests_pb1$ci.ub[i] <- model$ci.ub[2] 
+  }
+}
+
+#saveRDS(ests_pb1, here("dat", "ests_pb1.RData"))
+ests_pb1 <- readRDS(here("dat", "ests_pb1.RData"))
+# add label
+ests_pb1$MA.id <- names(dat)
+length(which(ests_pb1$pval < 0.05))
+
+# remove NA and extreme estimate
+ests_pb1 <- ests_pb1[!is.na(ests_pb1$estimate),]
+ests_pb1 <- ests_pb1 %>% filter(estimate < 50 & estimate > -50)
+
+length(which(ests_pb1$pval < 0.05)) / nrow(ests_pb1)
+
+# small study effect2
+# empty data frame
+ests_pb2 <- data.frame(
+  k = rep(NA, length(res_list2_PET)),
+  estimate = rep(NA, length(res_list2_PET)),
+  se = rep(NA, length(res_list2_PET)),
+  pval = rep(NA, length(res_list2_PET)),
+  ci.lb = rep(NA, length(res_list2_PET)),
+  ci.ub = rep(NA, length(res_list2_PET)),
+  estimate_alpha = rep(NA, length(res_list2_PET)),
+  se_alpha = rep(NA, length(res_list2_PET)),
+  pval_alpha = rep(NA, length(res_list2_PET)),
+  ci.lb_alpha = rep(NA, length(res_list2_PET)),
+  ci.ub_alpha = rep(NA, length(res_list2_PET))
+)
+
+# extract
+for (i in seq_along(res_list2_PET)) {
+  model <- res_list2_PET[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests_pb2$k[i] <- model$k
+    ests_pb2$estimate[i] <- coef(model)$beta[2]  
+    ests_pb2$se[i] <- model$se[2]  
+    ests_pb2$pval[i] <- model$pval[2] 
+    ests_pb2$ci.lb[i] <- model$ci.lb[2]  
+    ests_pb2$ci.ub[i] <- model$ci.ub[2]
+    
+    ests_pb2$estimate_alpha[i] <- coef(model)$alpha[2]  
+    ests_pb2$se_alpha[i] <- model$se.alpha[2]  
+    ests_pb2$pval_alpha[i] <- model$pval.alpha[2] 
+    ests_pb2$ci.lb_alpha[i] <- model$ci.lb.alpha[2]  
+    ests_pb2$ci.ub_alpha[i] <- model$ci.ub.alpha[2]
+  }
+}
+
+#saveRDS(ests_pb2, here("dat", "ests_pb2.RData"))
+ests_pb2 <- readRDS(here("dat", "ests_pb2.RData"))
+# add label
+ests_pb2$MA.id <- names(dat)
+length(which(ests_pb2$pval < 0.05))
+length(which(ests_pb2$pval_alpha < 0.05))
+
+
+# remove NA and extreme estimate
+ests_pb2 <- ests_pb2[!is.na(ests_pb2$estimate),]
+ests_pb2 <- ests_pb2 %>% filter(estimate < 50 & estimate > -50)
+
+
+length(which(ests_pb2$pval < 0.05)) / nrow(ests_pb2)
+length(which(ests_pb2$pval_alpha < 0.05)) / nrow(ests_pb2)
+
+# small study effect3
+# empty data frame
+ests_pb3 <- data.frame(
+  k = rep(NA, length(res_list3_PET)),
+  estimate_alpha = rep(NA, length(res_list3_PET)),
+  se_alpha = rep(NA, length(res_list3_PET)),
+  pval_alpha = rep(NA, length(res_list3_PET)),
+  ci.lb_alpha = rep(NA, length(res_list3_PET)),
+  ci.ub_alpha = rep(NA, length(res_list3_PET))
+)
+
+# extract
+for (i in seq_along(res_list3_PET)) {
+  model <- res_list3_PET[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests_pb3$k[i] <- model$k
+    ests_pb3$estimate_alpha[i] <- coef(model)$alpha[2]  
+    ests_pb3$se_alpha[i] <- model$se.alpha[2]  
+    ests_pb3$pval_alpha[i] <- model$pval.alpha[2] 
+    ests_pb3$ci.lb_alpha[i] <- model$ci.lb.alpha[2]  
+    ests_pb3$ci.ub_alpha[i] <- model$ci.ub.alpha[2]
+  }
+}
+
+#saveRDS(ests_pb3, here("dat", "ests_pb3.RData"))
+ests_pb3 <- readRDS(here("dat", "ests_pb3.RData"))
+
+# add label
+ests_pb3$MA.id <- names(dat)
+length(which(ests_pb3$pval_alpha < 0.05))
+
+
+# small study effect4
+# empty data frame
+ests_pb4 <- data.frame(
+  k = rep(NA, length(res_list4_PET)),
+  estimate_alpha = rep(NA, length(res_list4_PET)),
+  se_alpha = rep(NA, length(res_list4_PET)),
+  pval_alpha = rep(NA, length(res_list4_PET)),
+  ci.lb_alpha = rep(NA, length(res_list4_PET)),
+  ci.ub_alpha = rep(NA, length(res_list4_PET))
+)
+
+# extract
+for (i in seq_along(res_list4_PET)) {
+  model <- res_list4_PET[[i]]
+  
+  if (!is.null(model) && !is.na(model)) {
+    ests_pb4$k[i] <- model$k
+    ests_pb4$estimate_alpha[i] <- coef(model)$alpha[2]  
+    ests_pb4$se_alpha[i] <- model$se.alpha[2]  
+    ests_pb4$pval_alpha[i] <- model$pval.alpha[2] 
+    ests_pb4$ci.lb_alpha[i] <- model$ci.lb.alpha[2]  
+    ests_pb4$ci.ub_alpha[i] <- model$ci.ub.alpha[2]
+  }
+}
+
+#saveRDS(ests_pb4, here("dat", "ests_pb4.RData"))
+ests_pb4 <- readRDS(here("dat", "ests_pb4.RData"))
+
+# add label
+ests_pb3$MA.id <- names(dat)
+length(which(ests_pb3$pval_alpha < 0.05))
+
+
+```
+
+
+## True effect approximation
+
+```{r}
+est.petpeese_SMD.zr <- do.call(rbind, lapply(seq_along(adjustPET_SMD.zr_RVE), function(i) {
+  # NULL models for PET and PEESE
+  PET_model <- adjustPET_SMD.zr_RVE[[i]]
+  PEESE_model <- adjustPEESE_SMD.zr_RVE[[i]]
+  
+  if (is.null(PET_model) || is.null(PEESE_model)) {
+    # assign NA if any model is null
+    return(data.frame(est = NA, se = NA, p = NA, source = NA))
+  }
+  
+  tryCatch({
+    # evaluate PET p-value
+    PET_pval <- PET_model$pval[1]
+    
+    if (PET_pval > 0.1) {
+      # extract from PET if test is not rejected
+      return(data.frame(
+        est = PET_model$b[1],
+        se  = PET_model$se[1],
+        p   = PET_pval,
+        source = "PET"
+      ))
+    } else if (PET_pval < 0.1) {
+      # extract from PEESE if PET is rejected
+      return(data.frame(
+        est = PEESE_model$b[1],
+        se  = PEESE_model$se[1],
+        p   = PEESE_model$pval[1],
+        source = "PEESE"
+      ))
+    } else {
+      # assign NA if conditions are ambiguous
+      return(data.frame(est = NA, se = NA, p = NA, source = NA))
+    }
+  }, error = function(e) {
+    # errors during extraction
+    return(data.frame(est = NA, se = NA, p = NA, source = NA))
+  })
+}))
+
+#saveRDS(est.petpeese_SMD.zr, here("Dat", "est.petpeese_SMD.zr.RData"))
+est.petpeese_SMD.zr <- readRDS(here("Dat", "est.petpeese_SMD.zr.RData"))
+```
+
+
+# Software and package versions
+
+```{r}
+knitr::kable(installed.packages()[names(sessionInfo()$otherPkgs), "Version"], "pipe")
+```
+
+|package      |version    |
+|:------------|:----------|
+|brms         |2.22.0     |
+|Rcpp         |1.0.13     |
+|clubSandwich |0.5.11     |
+|metafor      |4.7-53     |
+|numDeriv     |2016.8-1.1 |
+|metadat      |1.2-0      |
+|Matrix       |1.5-3      |
+|forcats      |0.5.2      |
+|stringr      |1.5.0      |
+|purrr        |0.3.4      |
+|tibble       |3.1.8      |
+|ggplot2      |3.4.4      |
+|tidyverse    |1.3.1      |
+|tidyr        |1.2.1      |
+|readr        |2.1.2      |
+|dplyr        |1.0.10     |
+|here         |1.0.1      |

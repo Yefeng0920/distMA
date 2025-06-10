@@ -1,12 +1,10 @@
 # Replication package for
 
-## Distributional regression models for meta-analysis
-
+* Distributional regression models for meta-analysis*
 
 ## Transparency declaration
 
-The authors affirm that the manuscript is an honest, accurate, and transparent account of the study being reported, and no important
-aspects of the study have been omitted.
+The authors affirm that the manuscript is an honest, accurate, and transparent account of the study being reported, and no important aspects of the study have been omitted.
 
 ## Reproducibility declaration
 

@@ -9,13 +9,16 @@ The authors affirm that the manuscript is an honest, accurate, and transparent a
 
 ## Structure
 
-The repository contains the following folders:
+The repository contains the following folders or files:
 
 - R
 
 - dat
 
 - fun
+
+- `distMA_git.Rproj`
+
 
 ### `R` folder
 
@@ -24,7 +27,6 @@ The `R` folder includes the `R` scripts that reproduce all results.
 The scripts are formatted in Rmarkdown (`Rmd`).
 
 - `analysis.Rmd`
-
 
 ### `dat` folder
 

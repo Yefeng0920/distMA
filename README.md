@@ -1,16 +1,11 @@
 # Replication package for
 
-*Distributional regression models for meta-analysis*
+> Yang, Y., & Nakagawa, S. (2025). Distributional regression models for meta-analysis.
 
-## Transparency declaration
+## Transparency and reproducibility declaration
 
 The authors affirm that the manuscript is an honest, accurate, and transparent account of the study being reported, and no important aspects of the study have been omitted.
-
-## Reproducibility declaration
-
-This is a repository containing the data and code for reproducing results from:    
-
-> Yang, Y., & Nakagawa, S. (2025). Distributional regression models for meta-analysis.
+  
 
 ## Structure
 

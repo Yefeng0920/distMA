@@ -44,7 +44,7 @@ The `dat` folder includes the (**raw** and **processed**) datasets that are nece
 
 The datasets were originally compiled by:
 
-> Bartoš, F., Maier, M., Wagenmakers, E. J., Nippold, F., Doucouliagos, H., Ioannidis, J. P., ... & Stanley, T. D. (2024). Footprint of publication selection bias on meta‐analyses in medicine, environmental sciences, psychology, and economics. Research Synthesis Methods, 15(3), 500-511..
+> Bartoš, F., Maier, M., Wagenmakers, E. J., Nippold, F., Doucouliagos, H., Ioannidis, J. P., ... & Stanley, T. D. (2024). Footprint of publication selection bias on meta‐analyses in medicine, environmental sciences, psychology, and economics. Research Synthesis Methods, 15(3), 500-511.
 
 Owing to journals’ mandatory open data policies and the widespread adoption of FAIR (Findable, Accessible, Interoperable, and Reusable) data-sharing principles, we could easily find and re-use these publicly accessible datasets.
 
